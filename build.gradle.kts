@@ -4,6 +4,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     kotlin("jvm") version "1.9.10"
     id("com.github.johnrengelman.shadow") version "8.1.1"
+    kotlin("plugin.serialization") version "1.9.10"
 }
 
 group = "com.nitro4friends"
@@ -21,12 +22,14 @@ val shadowDependencies = listOf(
     "io.javalin:javalin-bundle:5.6.2",
 
     "io.ktor:ktor-client-core:$ktorVersion",
-    "io.ktor:ktor-client-okhttp:$ktorVersion",
     "io.ktor:ktor-client-cio:$ktorVersion",
-    "io.ktor:ktor-client-cio-jvm:$ktorVersion",
-    "io.ktor:ktor-serialization-kotlinx-json:$ktorVersion",
+    "io.ktor:ktor-client-json:$ktorVersion",
     "io.ktor:ktor-client-content-negotiation:$ktorVersion",
+    "io.ktor:ktor-serialization-kotlinx-json:$ktorVersion",
+    "io.ktor:ktor-client-serialization:$ktorVersion",
+    "io.ktor:ktor-client-logging:$ktorVersion",
 
+    "com.google.code.gson:gson:2.10.1",
 
     "org.jetbrains.exposed:exposed-core:$exposedVersion",
     "org.jetbrains.exposed:exposed-dao:$exposedVersion",
