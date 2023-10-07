@@ -1,5 +1,6 @@
 package com.nitro4friends.api.handlers
 
+import com.nitro4friends.cache.UserStorage
 import com.nitro4friends.model.createOrUpdateUser
 import com.nitro4friends.utils.Environment
 import com.nitro4friends.utils.getAccessToken
@@ -26,7 +27,7 @@ class DiscordRedirect : EndpointGroup {
 
         get { ctx ->
             val code = ctx.queryParam("code")
-            val uid = kotlin.runCatching { UUID.fromString(ctx.queryParam("state")) }.getOrNull()
+            val uid = ctx.queryParam("state")
 
             if (code == null || uid == null) {
                 ctx.status(400)
@@ -34,7 +35,7 @@ class DiscordRedirect : EndpointGroup {
             }
 
             ctx.status(HttpStatus.OK)
-            getItsLogger().info("User $uid authenticated with Discord. (Code: $code)")
+            getItsLogger().info("Uid $uid authenticated with Discord.")
             getItsLogger().info("Trying to exchange code for access token...")
 
             try {
@@ -48,9 +49,7 @@ class DiscordRedirect : EndpointGroup {
                         getItsLogger().info("Successfully retrieved user information. (ID: ${discordUser.id}, Username: ${discordUser.username})")
 
                         val userModel = createOrUpdateUser(accessPacket, discordUser)
-
-                        // Todo: Save the userModel with the uid to local cache for later use.
-
+                        UserStorage.addUser(uid, userModel)
                         getItsLogger().info("Successfully created or updated user in database.")
 
                         Environment.getEnv("AUTH_URL")?.let { ctx.redirect(it) } ?: ctx.status(500)

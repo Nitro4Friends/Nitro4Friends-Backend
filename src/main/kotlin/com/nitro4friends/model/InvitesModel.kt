@@ -30,8 +30,8 @@ data class InvitesModel(
  */
 internal object InvitesModelTable : Table("invites") {
     val uid = long("uid").autoIncrement()
-    val inviterId = varchar("inviter_id", 24).references(UserModelTable.clientID, onDelete = ReferenceOption.CASCADE)
-    val invitedId = varchar("invited_id", 24).references(UserModelTable.clientID, onDelete = ReferenceOption.CASCADE)
+    val inviterId = varchar("inviter_id", 24)
+    val invitedId = varchar("invited_id", 24)
     val invitedDate = timestamp("invited_date").defaultExpression(CurrentTimestamp())
 
     override val primaryKey = PrimaryKey(uid)
