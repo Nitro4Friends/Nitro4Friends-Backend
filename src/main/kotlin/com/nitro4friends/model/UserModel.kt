@@ -4,24 +4,32 @@ import com.nitro4friends.model.discord.AccessPacket
 import com.nitro4friends.model.discord.DiscordUser
 import com.nitro4friends.utils.toCalendar
 import dev.fruxz.ascend.extension.data.RandomTagType
-import dev.fruxz.ascend.extension.data.buildRandomTag
 import dev.fruxz.ascend.extension.data.generateRandomTag
-import dev.fruxz.ascend.extension.switch
 import dev.fruxz.ascend.tool.time.calendar.Calendar
 import kotlinx.serialization.Serializable
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.javatime.CurrentTimestamp
 import org.jetbrains.exposed.sql.javatime.timestamp
 import org.jetbrains.exposed.sql.replace
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
-import org.jetbrains.exposed.sql.update
-import java.util.UUID
-import kotlin.time.Duration
+import java.util.*
 import kotlin.time.Duration.Companion.milliseconds
 
 
+/**
+ * UserModel represents a user model in the system.
+ *
+ * @property identifier The unique identifier of the user.
+ * @property clientID The client ID of the user.
+ * @property userName The username of the user.
+ * @property email The email of the user, nullable.
+ * @property avatar The avatar URL of the user.
+ * @property avatarDecoration The decoration of the avatar, nullable.
+ * @property accessPacket The access packet containing access token information.
+ * @property inviteCode The invite code of the user.
+ * @property joinDate The join date of the user in milliseconds.
+ */
 @Serializable
 data class UserModel (
     val identifier: String,
@@ -38,6 +46,10 @@ data class UserModel (
 )
 
 
+/**
+ * UserModelTable is a database table representation of the "users" table.
+ * It defines the structure of the table and provides access to its columns.
+ */
 internal object UserModelTable : Table("users") {
     val identifier = uuid("identifier")
     val clientID = varchar("client_id", 24)
@@ -58,6 +70,12 @@ internal object UserModelTable : Table("users") {
     override val primaryKey = PrimaryKey(identifier)
 }
 
+/**
+ * Retrieves a user from the database based on the given identifier.
+ *
+ * @param identifier The unique identifier of the user.
+ * @return The UserModel object representing the user, or null if the user is not found.
+ */
 fun getUser(identifier: UUID): UserModel? = transaction {
     val resultRow = UserModelTable.select { UserModelTable.identifier eq identifier }.firstOrNull() ?: return@transaction null
 
@@ -80,6 +98,15 @@ fun getUser(identifier: UUID): UserModel? = transaction {
     )
 }
 
+/**
+ * Creates or updates a user in the database based on the given identifier, access packet, and Discord user information.
+ * If a user with the given identifier already exists, the existing user will be updated with the provided information.
+ * If no user with the given identifier exists, a new user will be created with the provided information.
+ *
+ * @param identifier The unique identifier of the user.
+ * @param accessPacket The access packet containing access token information.
+ * @param discordUser The Discord user information.
+ */
 fun createOrUpdateUser(identifier: UUID, accessPacket: AccessPacket, discordUser: DiscordUser) = transaction {
     var user = getUser(identifier) ?: UserModel(
         identifier.toString(),

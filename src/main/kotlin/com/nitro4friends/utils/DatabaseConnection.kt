@@ -1,5 +1,8 @@
 package com.nitro4friends.utils
 
+import com.nitro4friends.model.CreditsModelTable
+import com.nitro4friends.model.InvitesModelTable
+import com.nitro4friends.model.RedeemModelTable
 import com.nitro4friends.model.UserModelTable
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
@@ -31,7 +34,10 @@ internal object DatabaseConnection {
         getItsLogger().info("Check for table updates...")
         transaction {
             SchemaUtils.createMissingTablesAndColumns(
-                UserModelTable
+                UserModelTable,
+                CreditsModelTable,
+                InvitesModelTable,
+                RedeemModelTable
             )
         }
 
