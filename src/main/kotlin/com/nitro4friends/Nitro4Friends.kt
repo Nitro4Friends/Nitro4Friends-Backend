@@ -1,6 +1,7 @@
 package com.nitro4friends
 
 import com.nitro4friends.api.RestAPI
+import com.nitro4friends.utils.DatabaseConnection
 import com.nitro4friends.utils.Environment
 import dev.fruxz.ascend.extension.logging.getItsLogger
 
@@ -29,12 +30,15 @@ class Nitro4Friends {
     init {
         getItsLogger().info("Starting Nitro4Friends Backend Service...")
 
+        DatabaseConnection.connect()
+
         restAPI = RestAPI()
         restAPI.startUp(Environment.getEnv("WEBSERVER_PORT")?.toInt() ?: 8080)
 
         // Add a shutdown hook to stop the server when the JVM is shutting down.
         Runtime.getRuntime().addShutdownHook(Thread {
             restAPI.shutDown()
+            DatabaseConnection.disconnect()
         })
 
         getItsLogger().info("Nitro4Friends Backend Service started.")

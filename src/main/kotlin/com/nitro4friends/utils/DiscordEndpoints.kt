@@ -1,11 +1,14 @@
 package com.nitro4friends.utils
 
 import com.nitro4friends.model.discord.AccessPacket
+import com.nitro4friends.model.discord.DiscordUser
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.contentnegotiation.*
+import io.ktor.client.request.*
 import io.ktor.client.request.forms.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 
@@ -43,4 +46,17 @@ suspend fun getAccessToken(code: String): AccessPacket {
         }
     )
     return response.body<AccessPacket>()
+}
+
+/**
+ * Retrieves the user information from Discord using the provided access token.
+ *
+ * @param token The access token to use for the request.
+ * @return A [User] object containing the user's Discord information.
+ */
+suspend fun getUserInfos(accessPacket: AccessPacket): DiscordUser {
+    val response = client.get("$DISCORD_BASE_URL/users/@me") {
+        header("Authorization", accessPacket.accessString)
+    }
+    return response.body<DiscordUser>()
 }
