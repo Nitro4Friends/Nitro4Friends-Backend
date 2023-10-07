@@ -1,5 +1,6 @@
 package com.nitro4friends.api
 
+import com.nitro4friends.api.handlers.DataEndpoints
 import com.nitro4friends.api.handlers.DiscordRedirect
 import io.javalin.Javalin
 import io.javalin.apibuilder.ApiBuilder.path
@@ -22,6 +23,7 @@ class RestAPI {
             .get("/") { ctx -> ctx.html("<p>Nothing here yet.</p><br /><h2>Todo:</h2><small>Add OpenAPI Docs</small>") }
             .routes {
                 path("/redirect", DiscordRedirect())
+                path("/data", DataEndpoints())
             }
             .start(port)
     }

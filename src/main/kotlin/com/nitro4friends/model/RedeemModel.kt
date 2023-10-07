@@ -45,7 +45,7 @@ enum class RedeemStatus {
  */
 internal object RedeemModelTable : Table("redeem") {
     val uid = long("uid").autoIncrement()
-    val clientID = varchar("client_id", 24).references(UserModelTable.clientID, onDelete = ReferenceOption.CASCADE)
+    val clientID = varchar("client_id", 24)
     val redeemedDate = timestamp("redeemed_date").defaultExpression(CurrentTimestamp())
     val paidAmount = integer("paid_amount")
     val status = enumerationByName("status", 10, RedeemStatus::class)

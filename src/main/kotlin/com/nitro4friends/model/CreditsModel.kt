@@ -46,7 +46,7 @@ data class CreditsModel(
  */
 internal object CreditsModelTable : Table("credits") {
     val uid = long("uid").autoIncrement()
-    val clientID = varchar("client_id", 24).references(UserModelTable.clientID, onDelete = ReferenceOption.CASCADE)
+    val clientID = varchar("client_id", 24)
     val amount = long("amount")
     val modifyDate = timestamp("modify_date").defaultExpression(CurrentTimestamp())
     val reason = varchar("reason", 255)
