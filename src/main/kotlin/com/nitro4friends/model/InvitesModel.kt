@@ -7,22 +7,21 @@ import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.javatime.CurrentTimestamp
 import org.jetbrains.exposed.sql.javatime.timestamp
 import org.jetbrains.exposed.sql.transactions.transaction
-import java.util.UUID
 
 /**
- * Represents an invite model.
+ * Represents an invitation model.
  * This class is used to store information about an invitation.
  *
  * @property uid The unique identifier for the invite. Default value is -1.
- * @property inviterIdentifier The identifier of the inviter.
- * @property invitedIdentifier The identifier of the invited person.
+ * @property inviterId The identifier of the inviter.
+ * @property invitedId The identifier of the invited person.
  * @property invitedDate The date when the person was invited. Default value is the current date and time.
  */
 @Serializable
 data class InvitesModel(
     val uid: Long = -1,
-    val inviterIdentifier: String,
-    val invitedIdentifier: String,
+    val inviterId: String,
+    val invitedId: String,
     val invitedDate: Calendar = Calendar.now()
 )
 
@@ -31,8 +30,8 @@ data class InvitesModel(
  */
 internal object InvitesModelTable : Table("invites") {
     val uid = long("uid").autoIncrement()
-    val inviterIdentifier = uuid("inviter_identifier").references(UserModelTable.identifier, onDelete = ReferenceOption.CASCADE)
-    val invitedIdentifier = uuid("invited_identifier").references(UserModelTable.identifier, onDelete = ReferenceOption.CASCADE)
+    val inviterId = varchar("inviter_id", 24).references(UserModelTable.clientID, onDelete = ReferenceOption.CASCADE)
+    val invitedId = varchar("invited_id", 24).references(UserModelTable.clientID, onDelete = ReferenceOption.CASCADE)
     val invitedDate = timestamp("invited_date").defaultExpression(CurrentTimestamp())
 
     override val primaryKey = PrimaryKey(uid)
@@ -42,17 +41,17 @@ internal object InvitesModelTable : Table("invites") {
 /**
  * Retrieves a list of invites from the database for a given identifier.
  *
- * @param identifier The identifier of the inviter.
+ * @param clientID The identifier of the inviter.
  *
  * @return The list of invites for the given identifier.
  */
-fun getInvites(identifier: UUID): List<InvitesModel> = transaction {
-    InvitesModelTable.select { InvitesModelTable.inviterIdentifier eq identifier }
+fun getInvites(clientID: String): List<InvitesModel> = transaction {
+    InvitesModelTable.select { InvitesModelTable.inviterId eq clientID }
         .map {
             InvitesModel(
                 it[InvitesModelTable.uid],
-                it[InvitesModelTable.inviterIdentifier].toString(),
-                it[InvitesModelTable.invitedIdentifier].toString(),
+                it[InvitesModelTable.inviterId].toString(),
+                it[InvitesModelTable.invitedId].toString(),
                 it[InvitesModelTable.invitedDate].toCalendar()
             )
         }
@@ -61,40 +60,40 @@ fun getInvites(identifier: UUID): List<InvitesModel> = transaction {
 /**
  * Returns the count of invites for a given identifier.
  *
- * @param identifier The identifier to get invites count for.
+ * @param clientID The identifier to get invites count for.
  * @return The count of invites for the given identifier.
  */
-fun getInvitesCount(identifier: UUID): Long = transaction {
-    InvitesModelTable.select { InvitesModelTable.inviterIdentifier eq identifier }.count()
+fun getInvitesCount(clientID: String): Long = transaction {
+    InvitesModelTable.select { InvitesModelTable.inviterId eq clientID }.count()
 }
 
 /**
  * Retrieves an [InvitesModel] by the provided identifier.
  *
- * @param identifier The identifier to search for an invite.
+ * @param clientID The identifier to search for an invite.
  * @return The [InvitesModel] matching the specified identifier, or null if not found.
  */
-fun getInvitedById(identifier: UUID): InvitesModel? = transaction {
-    InvitesModelTable.select { InvitesModelTable.invitedIdentifier eq identifier }
+fun getInvitedById(clientID: String): InvitesModel? = transaction {
+    InvitesModelTable.select { InvitesModelTable.invitedId eq clientID }
         .map {
             InvitesModel(
                 it[InvitesModelTable.uid],
-                it[InvitesModelTable.inviterIdentifier].toString(),
-                it[InvitesModelTable.invitedIdentifier].toString(),
+                it[InvitesModelTable.inviterId].toString(),
+                it[InvitesModelTable.invitedId].toString(),
                 it[InvitesModelTable.invitedDate].toCalendar()
             )
         }.firstOrNull()
 }
 
 /**
- * Adds an invite to the InvitesModelTable.
+ * Adds an invitation to the InvitesModelTable.
  *
  * @param inviterIdentifier the identifier of the inviter
  * @param invitedIdentifier the identifier of the invited person
  */
-fun addInvite(inviterIdentifier: UUID, invitedIdentifier: UUID) = transaction {
+fun addInvite(inviterId: String, invitedId: String) = transaction {
     InvitesModelTable.insert {
-        it[InvitesModelTable.inviterIdentifier] = inviterIdentifier
-        it[InvitesModelTable.invitedIdentifier] = invitedIdentifier
+        it[InvitesModelTable.inviterId] = inviterId
+        it[InvitesModelTable.invitedId] = invitedId
     }
 }

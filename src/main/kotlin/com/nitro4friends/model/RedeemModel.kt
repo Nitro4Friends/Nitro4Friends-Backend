@@ -13,7 +13,7 @@ import java.util.UUID
  * RedeemModel represents a redeem request made by a user.
  *
  * @property uid The unique identifier of the redeem request. Default value is -1 if not specified.
- * @property identifier The identifier of the redeem request.
+ * @property clientID The identifier of the redeem request.
  * @property redeemedDate The date when the redeem request was redeemed. Defaults to the current date and time.
  * @property paidAmount The amount paid for the redeem request. Defaults to 0 if not specified.
  * @property status The status of the redeem request. Defaults to RedeemStatus.PENDING if not specified.
@@ -22,7 +22,7 @@ import java.util.UUID
 @Serializable
 data class RedeemModel(
     val uid: Long = -1,
-    val identifier: String,
+    val clientID: String,
     val redeemedDate: Calendar = Calendar.now(),
     val paidAmount: Int = 0,
     val status: RedeemStatus = RedeemStatus.PENDING,
@@ -45,7 +45,7 @@ enum class RedeemStatus {
  */
 internal object RedeemModelTable : Table("redeem") {
     val uid = long("uid").autoIncrement()
-    val identifier = uuid("identifier").references(UserModelTable.identifier, onDelete = ReferenceOption.CASCADE)
+    val clientID = varchar("client_id", 24).references(UserModelTable.clientID, onDelete = ReferenceOption.CASCADE)
     val redeemedDate = timestamp("redeemed_date").defaultExpression(CurrentTimestamp())
     val paidAmount = integer("paid_amount")
     val status = enumerationByName("status", 10, RedeemStatus::class)
@@ -60,12 +60,12 @@ internal object RedeemModelTable : Table("redeem") {
  * @param identifier The identifier used to filter the redeem models.
  * @return A list of redeem models matching the provided identifier.
  */
-fun getRedeems(identifier: UUID): List<RedeemModel> = transaction {
-    RedeemModelTable.select { RedeemModelTable.identifier eq identifier }
+fun getRedeems(clientID: String): List<RedeemModel> = transaction {
+    RedeemModelTable.select { RedeemModelTable.clientID eq clientID }
         .map {
             RedeemModel(
                 it[RedeemModelTable.uid],
-                it[RedeemModelTable.identifier].toString(),
+                it[RedeemModelTable.clientID].toString(),
                 it[RedeemModelTable.redeemedDate].toCalendar(),
                 it[RedeemModelTable.paidAmount],
                 it[RedeemModelTable.status],
@@ -81,7 +81,7 @@ fun getRedeems(identifier: UUID): List<RedeemModel> = transaction {
  */
 fun addRedeem(model: RedeemModel) = transaction {
     RedeemModelTable.insert {
-        it[identifier] = UUID.fromString(model.identifier)
+        it[clientID] = model.clientID
         it[redeemedDate] = model.redeemedDate.javaInstant
         it[paidAmount] = model.paidAmount
         it[status] = model.status
