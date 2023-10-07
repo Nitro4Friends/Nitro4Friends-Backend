@@ -32,7 +32,6 @@ import kotlin.time.Duration.Companion.milliseconds
  */
 @Serializable
 data class UserModel (
-    val identifier: String,
     val clientID: String,
     val userName: String,
     val email: String?,
@@ -51,7 +50,6 @@ data class UserModel (
  * It defines the structure of the table and provides access to its columns.
  */
 internal object UserModelTable : Table("users") {
-    val identifier = uuid("identifier")
     val clientID = varchar("client_id", 24)
     val userName = varchar("user_name", 32)
     val email = varchar("email", 255).nullable()
@@ -67,7 +65,7 @@ internal object UserModelTable : Table("users") {
     val inviteCode = varchar("invite_code", 24)
     val joinDate = timestamp("join_date").defaultExpression(CurrentTimestamp())
 
-    override val primaryKey = PrimaryKey(identifier)
+    override val primaryKey = PrimaryKey(clientID)
 }
 
 /**
@@ -76,11 +74,10 @@ internal object UserModelTable : Table("users") {
  * @param identifier The unique identifier of the user.
  * @return The UserModel object representing the user, or null if the user is not found.
  */
-fun getUser(identifier: UUID): UserModel? = transaction {
-    val resultRow = UserModelTable.select { UserModelTable.identifier eq identifier }.firstOrNull() ?: return@transaction null
+fun getUser(clientID: String): UserModel? = transaction {
+    val resultRow = UserModelTable.select { UserModelTable.clientID eq clientID }.firstOrNull() ?: return@transaction null
 
     return@transaction UserModel(
-        resultRow[UserModelTable.identifier].toString(),
         resultRow[UserModelTable.clientID],
         resultRow[UserModelTable.userName],
         resultRow[UserModelTable.email],
@@ -103,13 +100,11 @@ fun getUser(identifier: UUID): UserModel? = transaction {
  * If a user with the given identifier already exists, the existing user will be updated with the provided information.
  * If no user with the given identifier exists, a new user will be created with the provided information.
  *
- * @param identifier The unique identifier of the user.
  * @param accessPacket The access packet containing access token information.
  * @param discordUser The Discord user information.
  */
-fun createOrUpdateUser(identifier: UUID, accessPacket: AccessPacket, discordUser: DiscordUser) = transaction {
-    var user = getUser(identifier) ?: UserModel(
-        identifier.toString(),
+fun createOrUpdateUser(accessPacket: AccessPacket, discordUser: DiscordUser): UserModel = transaction {
+    var user = getUser(discordUser.id) ?: UserModel(
         discordUser.id,
         discordUser.username,
         discordUser.email,
@@ -129,7 +124,6 @@ fun createOrUpdateUser(identifier: UUID, accessPacket: AccessPacket, discordUser
     )
 
     UserModelTable.replace {
-        it[UserModelTable.identifier] = UUID.fromString(user.identifier)
         it[UserModelTable.clientID] = user.clientID
         it[UserModelTable.userName] = user.userName
         it[UserModelTable.email] = user.email
@@ -144,4 +138,6 @@ fun createOrUpdateUser(identifier: UUID, accessPacket: AccessPacket, discordUser
 
         it[UserModelTable.inviteCode] = user.inviteCode
     }
+
+    return@transaction user
 }

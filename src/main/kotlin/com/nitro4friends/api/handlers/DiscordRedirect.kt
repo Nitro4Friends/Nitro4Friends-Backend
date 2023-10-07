@@ -47,7 +47,10 @@ class DiscordRedirect : EndpointGroup {
                         val discordUser = getUserInfos(accessPacket)
                         getItsLogger().info("Successfully retrieved user information. (ID: ${discordUser.id}, Username: ${discordUser.username})")
 
-                        createOrUpdateUser(uid, accessPacket, discordUser)
+                        val userModel = createOrUpdateUser(accessPacket, discordUser)
+
+                        // Todo: Save the userModel with the uid to local cache for later use.
+
                         getItsLogger().info("Successfully created or updated user in database.")
 
                         Environment.getEnv("AUTH_URL")?.let { ctx.redirect(it) } ?: ctx.status(500)

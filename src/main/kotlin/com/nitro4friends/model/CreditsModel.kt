@@ -3,17 +3,19 @@ package com.nitro4friends.model
 import com.nitro4friends.utils.toCalendar
 import dev.fruxz.ascend.tool.time.calendar.Calendar
 import kotlinx.serialization.Serializable
-import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.ReferenceOption
+import org.jetbrains.exposed.sql.Table
+import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.javatime.CurrentTimestamp
 import org.jetbrains.exposed.sql.javatime.timestamp
+import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
-import java.util.UUID
 
 /**
  * This class represents a credit modification model.
  *
  * @property uid The unique identifier of the credit modification. Default value is -1.
- * @property identifier The unique identifier associated with the credit modification.
+ * @property clientID The unique identifier associated with the credit modification.
  * @property amount The amount of the credit modification. Default value is 0.
  * @property modifyDate The modification date of the credit modification. Default value is the current date and time.
  * @property reason The reason for the credit modification. Default value is "ad-banner".
@@ -21,7 +23,7 @@ import java.util.UUID
 @Serializable
 data class CreditsModel(
     val uid: Long = -1,
-    val identifier: String,
+    val clientID: String,
     val amount: Long = 0,
     val modifyDate: Calendar = Calendar.now(),
     val reason: String = "ad-banner"
@@ -44,7 +46,7 @@ data class CreditsModel(
  */
 internal object CreditsModelTable : Table("credits") {
     val uid = long("uid").autoIncrement()
-    val identifier = uuid("identifier").references(UserModelTable.identifier, onDelete = ReferenceOption.CASCADE)
+    val clientID = varchar("client_id", 24).references(UserModelTable.clientID, onDelete = ReferenceOption.CASCADE)
     val amount = long("amount")
     val modifyDate = timestamp("modify_date").defaultExpression(CurrentTimestamp())
     val reason = varchar("reason", 255)
@@ -56,14 +58,14 @@ internal object CreditsModelTable : Table("credits") {
 /**
  * Retrieves the credit modifications for a given identifier.
  *
- * @param identifier The unique identifier for which to retrieve the credit modifications.
+ * @param clientID The unique identifier for which to retrieve the credit modifications.
  * @return A list of [CreditsModel] objects representing the credit modifications.
  */
-fun getCreditModifications(identifier: UUID): List<CreditsModel> = transaction {
-    return@transaction CreditsModelTable.select { CreditsModelTable.identifier eq identifier }.map {
+fun getCreditModifications(clientID: String): List<CreditsModel> = transaction {
+    return@transaction CreditsModelTable.select { CreditsModelTable.clientID eq clientID }.map {
         CreditsModel(
             uid = it[CreditsModelTable.uid],
-            identifier = it[CreditsModelTable.identifier].toString(),
+            clientID = it[CreditsModelTable.clientID].toString(),
             amount = it[CreditsModelTable.amount],
             modifyDate = it[CreditsModelTable.modifyDate].toCalendar(),
             reason = it[CreditsModelTable.reason]
@@ -75,12 +77,12 @@ fun getCreditModifications(identifier: UUID): List<CreditsModel> = transaction {
  * Updates the credit modification for the specified identifier with the given modification details.
  * The existing credit modification will be replaced with the new details in the database.
  *
- * @param identifier The unique identifier of the credit modification.
+ * @param clientID The unique identifier of the credit modification.
  * @param modification The new credit modification details.
  */
-fun addCreditModification(identifier: UUID, modification: CreditsModel) = transaction {
+fun addCreditModification(clientID: String, modification: CreditsModel) = transaction {
     CreditsModelTable.insert {
-        it[CreditsModelTable.identifier] = identifier
+        it[CreditsModelTable.clientID] = clientID
         it[CreditsModelTable.amount] = modification.amount
         it[CreditsModelTable.modifyDate] = modification.modifyDate.javaInstant
         it[CreditsModelTable.reason] = modification.reason
