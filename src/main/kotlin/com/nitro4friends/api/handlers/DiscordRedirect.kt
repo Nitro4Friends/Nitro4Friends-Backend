@@ -1,7 +1,9 @@
 package com.nitro4friends.api.handlers
 
+import com.nitro4friends.model.createOrUpdateUser
 import com.nitro4friends.utils.Environment
 import com.nitro4friends.utils.getAccessToken
+import com.nitro4friends.utils.getUserInfos
 import dev.fruxz.ascend.extension.logging.getItsLogger
 import io.javalin.apibuilder.ApiBuilder.get
 import io.javalin.apibuilder.EndpointGroup
@@ -10,6 +12,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.future.asCompletableFuture
 import kotlinx.coroutines.launch
+import java.util.UUID
 
 class DiscordRedirect : EndpointGroup {
 
@@ -23,7 +26,7 @@ class DiscordRedirect : EndpointGroup {
 
         get { ctx ->
             val code = ctx.queryParam("code")
-            val uid = ctx.queryParam("state")
+            val uid = kotlin.runCatching { UUID.fromString(ctx.queryParam("state")) }.getOrNull()
 
             if (code == null || uid == null) {
                 ctx.status(400)
@@ -39,11 +42,13 @@ class DiscordRedirect : EndpointGroup {
                     CoroutineScope(Dispatchers.Default).launch {
                         val accessPacket = getAccessToken(code)
                         getItsLogger().info("Successfully exchanged code for access token.")
-                        ctx.sessionAttribute("access_token", accessPacket.accessString)
 
+                        getItsLogger().info("Trying to retrieve user information...")
+                        val discordUser = getUserInfos(accessPacket)
+                        getItsLogger().info("Successfully retrieved user information. (ID: ${discordUser.id}, Username: ${discordUser.username})")
 
-                        // Todo: Save access packet to database
-
+                        createOrUpdateUser(uid, accessPacket, discordUser)
+                        getItsLogger().info("Successfully created or updated user in database.")
 
                         Environment.getEnv("AUTH_URL")?.let { ctx.redirect(it) } ?: ctx.status(500)
                     }.asCompletableFuture()
