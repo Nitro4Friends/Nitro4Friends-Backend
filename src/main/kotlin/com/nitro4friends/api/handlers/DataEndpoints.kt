@@ -18,19 +18,16 @@ class DataEndpoints: EndpointGroup {
      * Adds the endpoints for data fetching to the existing group of endpoints.
      */
     override fun addEndpoints() {
-        before { ctx ->
-            val (tokenType, uid) = ctx.header(Header.AUTHORIZATION)?.split(" ")?.toTypedArray() ?: return@before ctx.denyAccess()
-            if (tokenType != "Bearer") return@before ctx.denyAccess()
-
-            if (UserStorage.exists(uid)) {
-                ctx.attribute("uid", uid)
-                return@before
-            }
-            ctx.denyAccess()
-        }
 
         get("/@me") { ctx ->
-            val uid = ctx.attribute<String>("uid") ?: return@get ctx.denyAccess()
+            val (tokenType, uid) = ctx.header(Header.AUTHORIZATION)?.split(" ")?.toTypedArray() ?: return@get ctx.denyAccess()
+            if (tokenType != "Bearer") return@get ctx.denyAccess()
+
+            if (!UserStorage.exists(uid)) {
+                ctx.denyAccess()
+                return@get
+            }
+
             val user = UserStorage.getUser(uid) ?: return@get ctx.denyAccess()
             // Sending the user only public information back
             ctx.json(user.second)
