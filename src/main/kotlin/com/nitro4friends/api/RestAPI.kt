@@ -19,7 +19,16 @@ class RestAPI {
     private lateinit var apiServer: Javalin
 
     fun startUp(port: Int) {
-        apiServer = Javalin.create()
+        apiServer = Javalin.create { javalinConfig ->
+            javalinConfig.plugins.enableCors { corsContainer ->
+                corsContainer.add {
+                    it.anyHost()
+                }
+            }
+        }
+            .before {
+                it.header("Access-Control-Allow-Origin", "*")
+            }
             .get("/") { ctx -> ctx.html("<p>Nothing here yet.</p><br /><h2>Todo:</h2><small>Add OpenAPI Docs</small>") }
             .routes {
                 path("/redirect", DiscordRedirect())
