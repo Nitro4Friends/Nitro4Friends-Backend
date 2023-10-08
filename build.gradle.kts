@@ -72,6 +72,11 @@ tasks {
         mergeServiceFiles()
         configurations = listOf(project.configurations.shadow.get())
         archiveFileName.set("Nitro4Friends.jar")
+
+        manifest {
+            attributes["Main-Class"] = "com.nitro4friends.StartKt"
+        }
+        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     }
 }
 
