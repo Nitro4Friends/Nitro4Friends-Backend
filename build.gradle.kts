@@ -19,7 +19,7 @@ repositories {
 }
 
 val shadowDependencies = listOf(
-    "io.javalin:javalin-bundle:5.6.2",
+    "io.javalin:javalin-bundle:5.6.3",
 
     "io.ktor:ktor-client-core:$ktorVersion",
     "io.ktor:ktor-client-cio:$ktorVersion",
