@@ -76,14 +76,14 @@ Redeem your Nitro for your earned credits and get your Nitro Code!
 
 ## 🤝 Contributing <a name = "contributing"></a>
 
-Contributions, issues and feature requests are welcome!<br />Feel free to check [issues page](/issues).
+Contributions, issues and feature requests are welcome!<br />Feel free to check [issues page](https://github.com/Nitro4Friends/Nitro4Friends-Backend/issues).
 
 <br />
 
 ## 📝 License <a name = "license"></a>
 
 This project is [GPL 3.0](https://choosealicense.com/licenses/gpl-3.0/) licensed.
-Read more about it [here](/tree/main?tab=GPL-3.0-1-ov-file).
+Read more about it [here](https://github.com/Nitro4Friends/Nitro4Friends-Backend?tab=GPL-3.0-1-ov-file).
 
 <br />
 
